@@ -1,0 +1,77 @@
+﻿@using GuestBook.Domain
+@model CommentsViewModel
+@{ 
+
+    var groupsOfFive = Model.Comments
+        .Select((comment, index) => new { comment, index })
+        .GroupBy(ci => ci.index / 5);
+    int currentGroup = (int)ViewData["Group"];
+    int previousGroup = Math.Max(0, currentGroup-1); //return highest number of 2
+    int nextGroup = Math.Min(currentGroup+1,groupsOfFive.Count()-1); //returns lowest number of 2
+
+
+}
+
+
+<div class="m-3">
+    @{
+        if (currentGroup != 0)
+        {
+            <a asp-controller="home" asp-action="index" asp-route-currentGroup="@previousGroup">Previous</a>
+        }
+
+        if (currentGroup != groupsOfFive.Count() - 1)
+        {
+            <a asp-controller="home" asp-action="index" asp-route-currentGroup="@nextGroup">Next</a>
+        }
+
+    }
+
+    <h2>Group @groupsOfFive.ElementAt(currentGroup).Key</h2>
+    @foreach (var item in groupsOfFive.ElementAt(currentGroup))
+    {
+        <div class="card">
+            <div class="card-header">
+                <img width="50" src="@item.comment.PhotoUrl" class="d-inline" />
+                <h3 class="d-inline">@item.comment.Title</h3>
+                <h5 class="d-inline ml-auto">Posted on: @item.comment.Date by @(item.comment.Name == null ? "Anonymous user" : item.comment.Name)</h5>
+            </div>
+            <div class="card-body">
+                <p>@item.comment.Text</p>
+                <img width="20" src="/Photos/smiley-face.jpg" />
+            </div>
+            <div class="card-body">
+                @if (User.Identity.Name == item.comment.Name)
+                {
+                    <a asp-controller="home" asp-action="edit" asp-route-id="@item.comment.Id" class="btn btn-primary">Edit</a>
+                    <a class="btn btn-primary">Delete</a>
+                    <a class="btn btn-danger">Delete</a>
+                }
+            </div>
+        </div>
+    }
+
+
+</div>
+<div class="row m-3">
+    <div class="col-md-12">
+        <form method="post" asp-controller="home" asp-action="create">
+            <div class="form-group">
+                <label asp-for="Title"></label>
+                <input type="text" asp-for="Title" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Text"></label>
+                <input type="text" asp-for="Text" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Mood"></label>
+                <select asp-for="Mood" asp-items="Html.GetEnumSelectList<Mood>()" class="custom-select">
+                    <!--<option value="">Please Select</option>-->
+                </select>
+            </div>
+                <button type="submit">Post Comment</button>
+        </form>
+    </div>
+</div>
+
